@@ -190,6 +190,11 @@ func OaiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 
 	HandleFinalResponse(c, info, lastStreamData, responseId, createAt, model, systemFingerprint, usage, containStreamUsage)
 
+	if common.LogRequestResponseEnabled && len(streamItems) > 0 {
+		fullResponse := strings.Join(streamItems, "")
+		c.Set("response_content", fullResponse)
+	}
+
 	return usage, nil
 }
 
@@ -289,6 +294,10 @@ func OpenaiHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respo
 	}
 
 	service.IOCopyBytesGracefully(c, resp, responseBody)
+
+	if common.LogRequestResponseEnabled {
+		c.Set("response_content", string(responseBody))
+	}
 
 	return &simpleResponse.Usage, nil
 }

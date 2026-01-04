@@ -83,6 +83,10 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 			println("requestBody: ", string(body))
 		}
 		requestBody = bytes.NewBuffer(body)
+
+		if common.LogRequestResponseEnabled {
+			c.Set("request_content", string(body))
+		}
 	} else {
 		convertedRequest, err := adaptor.ConvertOpenAIRequest(c, info, request)
 		if err != nil {
@@ -153,6 +157,10 @@ func TextHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *types
 		logger.LogDebug(c, fmt.Sprintf("text request body: %s", string(jsonData)))
 
 		requestBody = bytes.NewBuffer(jsonData)
+
+		if common.LogRequestResponseEnabled {
+			c.Set("request_content", string(jsonData))
+		}
 	}
 
 	var httpResp *http.Response
@@ -451,6 +459,22 @@ func postConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage 
 		other["image_generation_call"] = true
 		other["image_generation_call_price"] = imageGenerationCallPrice
 	}
+
+	requestContent := ""
+	responseContent := ""
+	if common.LogRequestResponseEnabled {
+		if reqContent, exists := ctx.Get("request_content"); exists {
+			if str, ok := reqContent.(string); ok {
+				requestContent = str
+			}
+		}
+		if respContent, exists := ctx.Get("response_content"); exists {
+			if str, ok := respContent.(string); ok {
+				responseContent = str
+			}
+		}
+	}
+
 	model.RecordConsumeLog(ctx, relayInfo.UserId, model.RecordConsumeLogParams{
 		ChannelId:        relayInfo.ChannelId,
 		PromptTokens:     promptTokens,
@@ -464,5 +488,7 @@ func postConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage 
 		IsStream:         relayInfo.IsStream,
 		Group:            relayInfo.UsingGroup,
 		Other:            other,
+		RequestContent:   requestContent,
+		ResponseContent:  responseContent,
 	})
 }

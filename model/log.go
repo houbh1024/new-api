@@ -37,6 +37,8 @@ type Log struct {
 	Group            string `json:"group" gorm:"index"`
 	Ip               string `json:"ip" gorm:"index;default:''"`
 	Other            string `json:"other"`
+	RequestContent   string `json:"request_content" gorm:"type:text"`
+	ResponseContent  string `json:"response_content" gorm:"type:text"`
 }
 
 // don't use iota, avoid change log type value
@@ -151,6 +153,8 @@ type RecordConsumeLogParams struct {
 	IsStream         bool                   `json:"is_stream"`
 	Group            string                 `json:"group"`
 	Other            map[string]interface{} `json:"other"`
+	RequestContent   string                 `json:"request_content"`
+	ResponseContent  string                 `json:"response_content"`
 }
 
 func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams) {
@@ -189,7 +193,9 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 			}
 			return ""
 		}(),
-		Other: otherStr,
+		Other:           otherStr,
+		RequestContent:  params.RequestContent,
+		ResponseContent: params.ResponseContent,
 	}
 	err := LOG_DB.Create(log).Error
 	if err != nil {
