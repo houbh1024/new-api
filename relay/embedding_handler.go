@@ -50,6 +50,10 @@ func EmbeddingHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *
 		return types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
 	}
 
+	if common.LogRequestResponseEnabled {
+		c.Set("request_content", string(jsonData))
+	}
+
 	if len(info.ParamOverride) > 0 {
 		jsonData, err = relaycommon.ApplyParamOverride(jsonData, info.ParamOverride, relaycommon.BuildParamOverrideContext(info))
 		if err != nil {

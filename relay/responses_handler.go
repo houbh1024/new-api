@@ -48,6 +48,10 @@ func ResponsesHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *
 			return types.NewError(err, types.ErrorCodeReadRequestBodyFailed, types.ErrOptionWithSkipRetry())
 		}
 		requestBody = bytes.NewBuffer(body)
+
+		if common.LogRequestResponseEnabled {
+			c.Set("request_content", string(body))
+		}
 	} else {
 		convertedRequest, err := adaptor.ConvertOpenAIResponsesRequest(c, info, *request)
 		if err != nil {
@@ -56,6 +60,10 @@ func ResponsesHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *
 		jsonData, err := common.Marshal(convertedRequest)
 		if err != nil {
 			return types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
+		}
+
+		if common.LogRequestResponseEnabled {
+			c.Set("request_content", string(jsonData))
 		}
 
 		// remove disabled fields for OpenAI Responses API

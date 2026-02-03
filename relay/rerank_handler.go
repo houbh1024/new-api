@@ -48,6 +48,10 @@ func RerankHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *typ
 			return types.NewErrorWithStatusCode(err, types.ErrorCodeReadRequestBodyFailed, http.StatusBadRequest, types.ErrOptionWithSkipRetry())
 		}
 		requestBody = bytes.NewBuffer(body)
+
+		if common.LogRequestResponseEnabled {
+			c.Set("request_content", string(body))
+		}
 	} else {
 		convertedRequest, err := adaptor.ConvertRerankRequest(c, info.RelayMode, *request)
 		if err != nil {
@@ -56,6 +60,10 @@ func RerankHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *typ
 		jsonData, err := common.Marshal(convertedRequest)
 		if err != nil {
 			return types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
+		}
+
+		if common.LogRequestResponseEnabled {
+			c.Set("request_content", string(jsonData))
 		}
 
 		// apply param override

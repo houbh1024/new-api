@@ -44,6 +44,13 @@ func AudioHelper(c *gin.Context, info *relaycommon.RelayInfo) (newAPIError *type
 		return types.NewError(err, types.ErrorCodeConvertRequestFailed, types.ErrOptionWithSkipRetry())
 	}
 
+	if common.LogRequestResponseEnabled {
+		jsonData, err := common.Marshal(request)
+		if err == nil {
+			c.Set("request_content", string(jsonData))
+		}
+	}
+
 	resp, err := adaptor.DoRequest(c, info, ioReader)
 	if err != nil {
 		return types.NewError(err, types.ErrorCodeDoRequestFailed)
